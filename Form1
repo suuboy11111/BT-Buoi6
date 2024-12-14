@@ -1,0 +1,164 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data;
+using System.Data.SqlClient;
+namespace Buoi6BT
+{
+    public partial class frmQuanLySV : Form
+    {
+
+        private Model1 db = new Model1();
+
+        public frmQuanLySV()
+        {
+            InitializeComponent();
+
+        }
+        string connectionString = "Server=LAPTOP-OLT63P9F;Database=QLSinhVien;Trusted_Connection=True;";
+
+
+        private void lblTitle_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void frmQuanLySV_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                var listSinhVien = db.SinhViens.ToList();
+
+                // Kiểm tra dữ liệu
+                if (listSinhVien != null && listSinhVien.Count > 0)
+                {
+                    dgvSinhVien.DataSource = listSinhVien;
+                }
+                else
+                {
+                    MessageBox.Show("Không có dữ liệu trong bảng SinhVien.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Có lỗi xảy ra: " + ex.Message);
+            }
+            dgvSinhVien.AutoGenerateColumns = true;
+        }
+
+        private void btnThem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // Lấy dữ liệu từ các textbox
+                var mssv = txtMaSV.Text;
+                var ten = txtHoTen.Text;
+                var khoa = cmbKhoa.Text;
+                var diemTB = string.IsNullOrEmpty(txtDiemTB.Text) ? (double?)null : Convert.ToDouble(txtDiemTB.Text);
+
+                // Tạo đối tượng SinhVien mới
+                var sinhVienMoi = new SinhVien
+                {
+                    MSSV = mssv,
+                    Ten = ten,
+                    Khoa = khoa,
+                    DiemTB = diemTB
+                };
+
+                // Thêm sinh viên vào DbSet
+                db.SinhViens.Add(sinhVienMoi);
+                db.SaveChanges();
+
+                // Thông báo thêm thành công
+                MessageBox.Show("Thêm sinh viên thành công!");
+
+                // Cập nhật lại DataGridView
+                LoadDataGrid();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Có lỗi xảy ra: " + ex.Message);
+            }
+        }
+
+        private void LoadDataGrid()
+        {
+            var listSinhVien = db.SinhViens.ToList();
+            dgvSinhVien.DataSource = listSinhVien;
+        }
+
+        private void btnSua_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var mssv = txtMaSV.Text;
+
+                // Tìm sinh viên theo MSSV
+                var sinhVien = db.SinhViens.FirstOrDefault(sv => sv.MSSV == mssv);
+
+                if (sinhVien != null)
+                {
+                    // Cập nhật thông tin sinh viên
+                    sinhVien.Ten = txtHoTen.Text;
+                    sinhVien.Khoa = cmbKhoa.Text;
+                    sinhVien.DiemTB = string.IsNullOrEmpty(txtDiemTB.Text) ? (double?)null : Convert.ToDouble(txtDiemTB.Text);
+
+                    // Lưu thay đổi vào cơ sở dữ liệu
+                    db.SaveChanges();
+
+                    // Thông báo sửa thành công
+                    MessageBox.Show("Sửa thông tin sinh viên thành công!");
+
+                    // Cập nhật lại DataGridView
+                    LoadDataGrid();
+                }
+                else
+                {
+                    MessageBox.Show("Không tìm thấy sinh viên với MSSV: " + mssv);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Có lỗi xảy ra: " + ex.Message);
+            }
+        }
+
+        private void btnXoa_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var mssv = txtMaSV.Text;
+
+                // Tìm sinh viên theo MSSV
+                var sinhVien = db.SinhViens.FirstOrDefault(sv => sv.MSSV == mssv);
+
+                if (sinhVien != null)
+                {
+                    // Xóa sinh viên khỏi DbSet
+                    db.SinhViens.Remove(sinhVien);
+                    db.SaveChanges();
+
+                    // Thông báo xóa thành công
+                    MessageBox.Show("Xóa sinh viên thành công!");
+
+                    // Cập nhật lại DataGridView
+                    LoadDataGrid();
+                }
+                else
+                {
+                    MessageBox.Show("Không tìm thấy sinh viên với MSSV: " + mssv);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Có lỗi xảy ra: " + ex.Message);
+            }
+        }
+    }
+}
